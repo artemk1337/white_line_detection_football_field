@@ -7,25 +7,33 @@ import copy
 import cv2
 
 
-img = cv2.imread("3.jpg")
+img = cv2.imread("1.jpg")
 
 print(img.shape)
 
+square_size = 10
 
-square_size = 75
-x1, x2, y1, y2 = 500, 550, 50, 150
+
+# x1, x2, y1, y2 = 0, 75, 300, 375
 # print(img[y1:y2, x1:x2].mean(axis=(0, 1)))
 # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 3)
 # cv2.imshow("Test", img)
 # cv2.waitKey()
+# exit()
 
-res = copy.copy(img)
 
-for x_ in range(img.shape[1] - square_size):
-    for y_ in range(img.shape[0] - square_size):
+# print(img[np.where(img < 100)])
+# img[np.where(img < 100)] = 0
+# cv2.imshow("Test", img)
+# cv2.waitKey()
+
+res = np.zeros_like(img)
+
+for x_ in range(0, img.shape[1] - square_size, 10):
+    for y_ in range(0, img.shape[0] - square_size, 10):
         mean_val = img[y_:y_+square_size, x_:x_+square_size].mean(axis=(0, 1))
-        if mean_val[1] < 75 or np.argmax(mean_val) != 1:
-            res[y_:y_ + square_size, x_:x_ + square_size] = 0
+        if not mean_val[1] < 80 and not np.argmax(mean_val) != 1:
+            res[y_:y_ + square_size, x_:x_ + square_size] = img[y_:y_+square_size, x_:x_+square_size]
     print(x_, end="\r")
 
 img = res
@@ -58,9 +66,11 @@ edges = cv2.Canny(gray, 50, 150)
 lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi/180, threshold=50, minLineLength=75, maxLineGap=10)
 print(lines.shape)
 
+
+img = np.zeros_like(img)
 for line in lines:
     x1, x2, y1, y2 = line[0]
-    cv2.line(img, (x1, x2), (y1, y2), (0, 0, 255), 2)
+    cv2.line(img, (x1, x2), (y1, y2), (0, 0, 255), 5)
 
 cv2.imshow("Test", img)
 cv2.waitKey()
