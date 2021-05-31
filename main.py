@@ -7,7 +7,7 @@ import copy
 import cv2
 
 
-img = cv2.imread("1.jpg")
+img = cv2.imread("2.jpg")
 
 print(img.shape)
 
@@ -32,7 +32,7 @@ res = np.zeros_like(img)
 for x_ in range(0, img.shape[1] - square_size, 10):
     for y_ in range(0, img.shape[0] - square_size, 10):
         mean_val = img[y_:y_+square_size, x_:x_+square_size].mean(axis=(0, 1))
-        if not mean_val[1] < 80 and not np.argmax(mean_val) != 1:
+        if mean_val[1] > 80 and np.argmax(mean_val) == 1:
             res[y_:y_ + square_size, x_:x_ + square_size] = img[y_:y_+square_size, x_:x_+square_size]
     print(x_, end="\r")
 
