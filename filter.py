@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
-from PIL import ImageEnhance, Image
+import os
 
 
 def plot_image(img, cmap=None):
@@ -12,14 +12,15 @@ def plot_image(img, cmap=None):
 
 
 class ImageHolder:
-    def __init__(self, filename: str):
-        self.src_img = cv.imread(filename)
-        self.src_img = cv.resize(self.src_img, (1920, 1080))
+    def __init__(self):
+        self.src_img = None
+        self.filename = None
         self.dst_img = None
 
     def load_img(self, filename: str):
         self.src_img = cv.imread(filename)
         self.src_img = cv.resize(self.src_img, (1920, 1080))
+        self.filename = filename
         self.dst_img = None
 
     def _filterMark_(self, img):
@@ -48,8 +49,6 @@ class ImageHolder:
             x1, y1, x2, y2 = line[0]
             if not (x2 - x1):
                 break
-            if (x2 < x1):
-                print(x1, x2)
             a = (y2 - y1) / (x2 - x1)
             if abs(a) < 5:
                 b = y1 - a * x1
@@ -115,7 +114,9 @@ class ImageHolder:
             total_points += [[a, b, best_points]]
         return total_points
 
-    def apply_filters(self):
+    def apply_filters(self, filename=None):
+        if filename:
+            self.load_img(filename)
         img = self.src_img
         img = self._filterMark_(img)
 
@@ -128,6 +129,8 @@ class ImageHolder:
         edges = cv.Canny(gauss, 50, 150)
 
         lines = cv.HoughLinesP(edges, rho=1, theta=np.pi / 180, threshold=50, minLineLength=180, maxLineGap=50)
+        if not edges.mean():
+            return None, None
 
         # zeros = np.zeros((img.shape[0], img.shape[1])).astype(np.uint8)
         # kernal_size = 15
@@ -146,9 +149,11 @@ class ImageHolder:
         # self.dst_img = np.zeros((img.shape[0], img.shape[1])).astype(np.uint8)
         for a, b, [x1, y1, x2, y2] in total_points:
             cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+        self.save_image()
         return total_points, self.dst_img
 
-
-
-
-
+    def save_image(self):
+        if not os.path.exists("res_images"):
+            os.mkdir("res_images")
+        # print("res_images" + self.filename.split('/')[-1])
+        cv.imwrite("res_images/" + self.filename.split('/')[-1], self.dst_img)
