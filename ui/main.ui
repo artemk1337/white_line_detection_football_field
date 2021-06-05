@@ -454,7 +454,10 @@
      <item>
       <widget class="QLabel" name="label_image">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -518,7 +521,7 @@ border: 4px solid #808080;
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_open_2">
+        <widget class="QPushButton" name="pushButton_analyze">
          <property name="minimumSize">
           <size>
            <width>181</width>
@@ -559,7 +562,7 @@ border: 4px solid #808080;
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="pushButton_save">
          <property name="minimumSize">
           <size>
            <width>181</width>
@@ -600,11 +603,52 @@ border: 4px solid #808080;
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="textEdit">
+        <widget class="QPushButton" name="pushButton_analyze_folder">
          <property name="minimumSize">
           <size>
            <width>181</width>
-           <height>521</height>
+           <height>31</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>181</width>
+           <height>31</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QWidget {
+font-size: 15px;
+}
+
+QPushButton {
+background-color: #454545;
+color: #fffff8;
+border: 2px solid #808080;
+border-radius: 10px;
+/*border-bottom-left-radius: 15px;*/
+}
+
+QPushButton:hover {
+background-color: #323232;
+}
+
+QPushButton:pressed {
+background-color: #323232;
+border: 4px solid #808080;
+}</string>
+         </property>
+         <property name="text">
+          <string>Анализ папки</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_lines">
+         <property name="minimumSize">
+          <size>
+           <width>181</width>
+           <height>480</height>
           </size>
          </property>
          <property name="maximumSize">

@@ -164,6 +164,8 @@ class Ui_MainWindow(object):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setObjectName("mainLayout")
         self.label_image = QtWidgets.QLabel(self.widget)
+        self.label_image.setText("")
+        self.label_image.setAlignment(QtCore.Qt.AlignCenter)
         self.label_image.setObjectName("label_image")
         self.mainLayout.addWidget(self.label_image)
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -195,10 +197,10 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_open.setObjectName("pushButton_open")
         self.verticalLayout.addWidget(self.pushButton_open)
-        self.pushButton_open_2 = QtWidgets.QPushButton(self.widget)
-        self.pushButton_open_2.setMinimumSize(QtCore.QSize(181, 41))
-        self.pushButton_open_2.setMaximumSize(QtCore.QSize(181, 41))
-        self.pushButton_open_2.setStyleSheet("QWidget {\n"
+        self.pushButton_analyze = QtWidgets.QPushButton(self.widget)
+        self.pushButton_analyze.setMinimumSize(QtCore.QSize(181, 41))
+        self.pushButton_analyze.setMaximumSize(QtCore.QSize(181, 41))
+        self.pushButton_analyze.setStyleSheet("QWidget {\n"
 "font-size: 15px;\n"
 "}\n"
 "\n"
@@ -218,12 +220,12 @@ class Ui_MainWindow(object):
 "background-color: #323232;\n"
 "border: 4px solid #808080;\n"
 "}")
-        self.pushButton_open_2.setObjectName("pushButton_open_2")
-        self.verticalLayout.addWidget(self.pushButton_open_2)
-        self.pushButton_2 = QtWidgets.QPushButton(self.widget)
-        self.pushButton_2.setMinimumSize(QtCore.QSize(181, 31))
-        self.pushButton_2.setMaximumSize(QtCore.QSize(181, 31))
-        self.pushButton_2.setStyleSheet("QWidget {\n"
+        self.pushButton_analyze.setObjectName("pushButton_analyze")
+        self.verticalLayout.addWidget(self.pushButton_analyze)
+        self.pushButton_save = QtWidgets.QPushButton(self.widget)
+        self.pushButton_save.setMinimumSize(QtCore.QSize(181, 31))
+        self.pushButton_save.setMaximumSize(QtCore.QSize(181, 31))
+        self.pushButton_save.setStyleSheet("QWidget {\n"
 "font-size: 15px;\n"
 "}\n"
 "\n"
@@ -243,13 +245,38 @@ class Ui_MainWindow(object):
 "background-color: #323232;\n"
 "border: 4px solid #808080;\n"
 "}")
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.verticalLayout.addWidget(self.pushButton_2)
-        self.textEdit = QtWidgets.QTextEdit(self.widget)
-        self.textEdit.setMinimumSize(QtCore.QSize(181, 521))
-        self.textEdit.setMaximumSize(QtCore.QSize(181, 16777215))
-        self.textEdit.setObjectName("textEdit")
-        self.verticalLayout.addWidget(self.textEdit)
+        self.pushButton_save.setObjectName("pushButton_save")
+        self.verticalLayout.addWidget(self.pushButton_save)
+        self.pushButton_analyze_folder = QtWidgets.QPushButton(self.widget)
+        self.pushButton_analyze_folder.setMinimumSize(QtCore.QSize(181, 31))
+        self.pushButton_analyze_folder.setMaximumSize(QtCore.QSize(181, 31))
+        self.pushButton_analyze_folder.setStyleSheet("QWidget {\n"
+"font-size: 15px;\n"
+"}\n"
+"\n"
+"QPushButton {\n"
+"background-color: #454545;\n"
+"color: #fffff8;\n"
+"border: 2px solid #808080;\n"
+"border-radius: 10px;\n"
+"/*border-bottom-left-radius: 15px;*/\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"background-color: #323232;\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"background-color: #323232;\n"
+"border: 4px solid #808080;\n"
+"}")
+        self.pushButton_analyze_folder.setObjectName("pushButton_analyze_folder")
+        self.verticalLayout.addWidget(self.pushButton_analyze_folder)
+        self.textEdit_lines = QtWidgets.QTextEdit(self.widget)
+        self.textEdit_lines.setMinimumSize(QtCore.QSize(181, 480))
+        self.textEdit_lines.setMaximumSize(QtCore.QSize(181, 16777215))
+        self.textEdit_lines.setObjectName("textEdit_lines")
+        self.verticalLayout.addWidget(self.textEdit_lines)
         spacerItem1 = QtWidgets.QSpacerItem(20, 2, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.verticalLayout.addItem(spacerItem1)
         self.mainLayout.addLayout(self.verticalLayout)
@@ -265,7 +292,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label_image.setText(_translate("MainWindow", "TextLabel"))
         self.pushButton_open.setText(_translate("MainWindow", "Открыть"))
-        self.pushButton_open_2.setText(_translate("MainWindow", "Анализ"))
-        self.pushButton_2.setText(_translate("MainWindow", "Сохранить"))
+        self.pushButton_analyze.setText(_translate("MainWindow", "Анализ"))
+        self.pushButton_save.setText(_translate("MainWindow", "Сохранить"))
+        self.pushButton_analyze_folder.setText(_translate("MainWindow", "Анализ папки"))

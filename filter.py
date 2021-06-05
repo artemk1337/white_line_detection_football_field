@@ -21,7 +21,7 @@ class ImageHolder:
         self.src_img = cv.imread(filename)
         self.src_img = cv.resize(self.src_img, (1920, 1080))
         self.filename = filename
-        self.dst_img = None
+        self.dst_img = self.src_img.copy()
 
     def _filterMark_(self, img):
         # img = cv.resize(img, (1920, 1080))
@@ -147,13 +147,54 @@ class ImageHolder:
 
         self.dst_img = self.src_img.copy()
         # self.dst_img = np.zeros((img.shape[0], img.shape[1])).astype(np.uint8)
+
         for a, b, [x1, y1, x2, y2] in total_points:
             cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+        # import copy
+        # total_points_tmp = copy.deepcopy(total_points)
+        eps = 30
+        x_lines_idx = []
+        for i, (a, b, [x1, y1, x2, y2]) in enumerate(total_points):
+            a = np.tan(a / 180)
+            x_lines_idx += [0]
+            for ii, (a_, b_, [x1_, y1_, x2_, y2_]) in enumerate(total_points):
+                a_ = np.tan(a_ / 180)
+                if abs(int(a * x1_ + b) - y1_) < eps or abs(int(a * x2_ + b) - y2_) < eps:
+                    x_lines_idx[-1] += 1
+            x_lines_idx[-1] -= 1
+        # print(x_lines_idx)
+        # a, b, [x1, y1, x2, y2] = total_points[1]
+        # cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 255), 5)
+        len_idx = [np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) for a, b, [x1, y1, x2, y2] in total_points]
+        for i in range(len(total_points)):
+            total_points[i] += [len_idx[i], x_lines_idx[i]]
+        # print(total_points)
+
+        total_points_sorted = sorted(total_points, key=lambda l: l[3], reverse=True)
+        total_points_sorted_crop = total_points_sorted[:int(len(total_points_sorted))]
+
+        index_max_x_lines = 0
+        max_lines = 0
+        for i, (a, b, [x1, y1, x2, y2], len_, x_lines) in enumerate(total_points_sorted_crop):
+            if x_lines > max_lines:
+                max_lines = x_lines
+                index_max_x_lines = i
+        a, b, [x1, y1, x2, y2], len_, x_lines = total_points_sorted_crop[index_max_x_lines]
+        cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 5)
+        # x1, y1, x2, y2 = total_points[len_idx.index(max(len_idx))][-1]
+        # cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 4)
+
         self.save_image()
-        return total_points, self.dst_img
+        return total_points_sorted, self.dst_img
 
     def save_image(self):
         if not os.path.exists("res_images"):
             os.mkdir("res_images")
         # print("res_images" + self.filename.split('/')[-1])
         cv.imwrite("res_images/" + self.filename.split('/')[-1], self.dst_img)
+
+
+if __name__ == "__main__":
+    ImH = ImageHolder()
+    ImH.apply_filters("images/1.jpg")
