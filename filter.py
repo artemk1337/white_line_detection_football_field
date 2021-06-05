@@ -169,21 +169,28 @@ class ImageHolder:
         len_idx = [np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) for a, b, [x1, y1, x2, y2] in total_points]
         for i in range(len(total_points)):
             total_points[i] += [len_idx[i], x_lines_idx[i]]
-        # print(total_points)
 
         total_points_sorted = sorted(total_points, key=lambda l: l[3], reverse=True)
         total_points_sorted_crop = total_points_sorted[:int(len(total_points_sorted))]
 
+        # print(total_points_sorted)
+
         index_max_x_lines = 0
         max_lines = 0
-        for i, (a, b, [x1, y1, x2, y2], len_, x_lines) in enumerate(total_points_sorted_crop):
-            if x_lines > max_lines:
+        max_len = 0
+        a, b = 0, 0
+        for i, (a_, b_, [x1, y1, x2, y2], len_, x_lines) in enumerate(total_points_sorted_crop):
+            if (x_lines > max_lines or \
+                    (x_lines == max_lines and (((a < 0 and a_ < 0) and b_ < b) or ((a > 0 and a_ > 0) and b_ > b)))) \
+                    and len_ > 0.8 * max_len:
+                a, b = a_, b_
+                max_len = len_
                 max_lines = x_lines
                 index_max_x_lines = i
+        # print(index_max_x_lines)
+
         a, b, [x1, y1, x2, y2], len_, x_lines = total_points_sorted_crop[index_max_x_lines]
         cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 5)
-        # x1, y1, x2, y2 = total_points[len_idx.index(max(len_idx))][-1]
-        # cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 4)
 
         self.save_image()
         return total_points_sorted, self.dst_img

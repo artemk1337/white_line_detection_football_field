@@ -2,9 +2,7 @@ from filter import ImageHolder
 import multiprocessing
 import os
 
-
 IMAGE_DIR = "images"
-
 
 # stack = []
 # stack_full = True
@@ -17,13 +15,12 @@ if __name__ == "__main__":
     ImH = ImageHolder()
     processes = []
     for i, filename in enumerate(os.listdir(IMAGE_DIR)):
-        processes += [multiprocessing.Process(target=ImH.apply_filters, args=(IMAGE_DIR+'/'+filename,))]
+        processes += [multiprocessing.Process(target=ImH.apply_filters, args=(IMAGE_DIR + '/' + filename,))]
 
     processes_run = []
     stack = []
     for proc in processes:
         proc.start()
-
 
     #
     # processes_finished = []
