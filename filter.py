@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
+from transform import add_text
 import os
 
 
@@ -176,11 +177,12 @@ class ImageHolder:
         # print(total_points_sorted)
 
         index_max_x_lines = 0
+        self.index_max_x_lines = index_max_x_lines
         max_lines = 0
         max_len = 0
         a, b = 0, 0
         for i, (a_, b_, [x1, y1, x2, y2], len_, x_lines) in enumerate(total_points_sorted_crop):
-            if (x_lines > max_lines or \
+            if (x_lines > max_lines or
                     (x_lines == max_lines and (((a < 0 and a_ < 0) and b_ < b) or ((a > 0 and a_ > 0) and b_ > b)))) \
                     and len_ > 0.8 * max_len:
                 a, b = a_, b_
@@ -191,6 +193,49 @@ class ImageHolder:
 
         a, b, [x1, y1, x2, y2], len_, x_lines = total_points_sorted_crop[index_max_x_lines]
         cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 5)
+
+        # print(total_points_sorted)
+
+        # 2D proection
+        cross_lines = []
+        eps_ = 50
+        while len(cross_lines) < 2 and eps > 0:
+            cross_lines = []
+            for a, b, [x1, y1, x2, y2], len_, x_lines in total_points_sorted:
+                a_ = np.tan(total_points_sorted_crop[index_max_x_lines][0] / 180)
+                b_ = total_points_sorted_crop[index_max_x_lines][1]
+                x1_, y1_, x2_, y2_ = total_points_sorted_crop[index_max_x_lines][2]
+                if a * total_points_sorted_crop[index_max_x_lines][0] < 0 and \
+                        (abs(int(a_ * x1 + b_) - y1) < eps or
+                         abs(int(a_ * x2 + b_) - y2) < eps) and \
+                        x_lines == 1 and abs(y2 - y2_) > eps_ and abs(y2 - y1_) > eps_:
+                    cross_lines += [[a, b, [x1, y1, x2, y2], len_, x_lines]]
+            eps_ -= 1
+        # print(cross_lines)
+
+        eps = 10
+        import copy
+        cross_lines_ = copy.deepcopy(cross_lines)
+        # print(cross_lines)
+        if len(cross_lines) > 1:
+            cross_lines = cross_lines_
+            while len(cross_lines) != 2 and eps < 200:
+                for i in range(1, len(cross_lines)):
+                    a, b, [x1, y1, x2, y2], len_, x_lines = cross_lines[i]
+                    if abs(len_ - cross_lines[i-1][3]) < eps:
+                        cross_lines = cross_lines[i-1:i+1]
+                        break
+                eps += 10
+        # print(cross_lines)
+        if len(cross_lines) == 2:
+            a1, a2 = cross_lines[0][0], cross_lines[1][0]
+            if a1 < 0 and cross_lines[0][2][0] > cross_lines[1][2][0]:
+                cross_lines.reverse()
+            x1, y1, x2, y2 = cross_lines[0][2]
+            x3, y3, x4, y4 = cross_lines[1][2]
+            self.dst_img = add_text(image=self.dst_img, im_pts=[[x1, y1], [x2, y2], [x3, y3], [x4, y4]],
+                                    zone=1, draw_lines=False)
+        # print(cross_lines)
 
         self.save_image()
         return total_points_sorted, self.dst_img
