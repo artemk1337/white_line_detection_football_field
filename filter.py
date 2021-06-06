@@ -206,8 +206,8 @@ class ImageHolder:
 
         # 2D proection
 
-        print(x_lines_idx[index_max_x_lines])
-        print([x_lines_idx[key] for key in x_lines_idx[index_max_x_lines]])
+        # print(x_lines_idx[index_max_x_lines])
+        # print([x_lines_idx[key] for key in x_lines_idx[index_max_x_lines]])
 
         idx_lines = []
         try:
@@ -228,7 +228,7 @@ class ImageHolder:
         except:
             pass
 
-        print(idx_lines)
+        # print(idx_lines)
         if len(idx_lines) == 2:
 
             idx1, idx2 = idx_lines[0], idx_lines[1]
@@ -238,7 +238,7 @@ class ImageHolder:
 
             p0, p1, p2, p3 = total_points_sorted[idx1][2][:2], total_points_sorted[idx1][2][2:], \
                              total_points_sorted[idx2][2][:2], total_points_sorted[idx2][2][2:]
-            print(total_points_sorted[idx1], total_points_sorted[idx2])
+            # print(total_points_sorted[idx1], total_points_sorted[idx2])
 
             # cv.circle(self.dst_img, p0, radius=10, color=(255, 255, 255), thickness=-1)
             self.dst_img = add_text(self.dst_img, [p0, p1, p2, p3])
