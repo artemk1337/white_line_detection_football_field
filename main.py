@@ -4,11 +4,6 @@ import os
 
 IMAGE_DIR = "images"
 
-# stack = []
-# stack_full = True
-#
-# while stack_full:
-
 
 if __name__ == "__main__":
     print("Virtual cores:", multiprocessing.cpu_count())
