@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from transform import add_text
 import os
+from scipy.spatial import distance
 
 
 def plot_image(img, cmap=None):
@@ -29,7 +30,7 @@ class ImageHolder:
         kernel = np.ones((15, 15), np.uint8)
 
         hsv = cv.cvtColor(cv.GaussianBlur(img, (5, 5), 5), cv.COLOR_BGR2HSV)
-        mask_green = cv.inRange(hsv, (20, 20, 60), (70, 235, 200))
+        mask_green = cv.inRange(hsv, (20, 20, 80), (70, 235, 200))
 
         mask_green = cv.morphologyEx(mask_green, cv.MORPH_OPEN, kernel)
 
@@ -152,29 +153,35 @@ class ImageHolder:
         for a, b, [x1, y1, x2, y2] in total_points:
             cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-        # import copy
-        # total_points_tmp = copy.deepcopy(total_points)
-        eps = 30
-        x_lines_idx = []
-        for i, (a, b, [x1, y1, x2, y2]) in enumerate(total_points):
-            a = np.tan(a / 180)
-            x_lines_idx += [0]
-            for ii, (a_, b_, [x1_, y1_, x2_, y2_]) in enumerate(total_points):
-                a_ = np.tan(a_ / 180)
-                if abs(int(a * x1_ + b) - y1_) < eps or abs(int(a * x2_ + b) - y2_) < eps:
-                    x_lines_idx[-1] += 1
-            x_lines_idx[-1] -= 1
-        # print(x_lines_idx)
-        # a, b, [x1, y1, x2, y2] = total_points[1]
-        # cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 255), 5)
         len_idx = [np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) for a, b, [x1, y1, x2, y2] in total_points]
-        for i in range(len(total_points)):
-            total_points[i] += [len_idx[i], x_lines_idx[i]]
-
+        for i in range(len(len_idx)):
+            total_points[i] += [len_idx[i]]
         total_points_sorted = sorted(total_points, key=lambda l: l[3], reverse=True)
-        total_points_sorted_crop = total_points_sorted[:int(len(total_points_sorted))]
+        # print(total_points_sorted)
+
+        eps = 50
+        x_lines_idx = {}
+        self.x_lines_idx = x_lines_idx
+        for i, (a, b, [x1, y1, x2, y2], _) in enumerate(total_points_sorted):
+            a = np.tan(a / 180)
+            x_lines_idx[i] = []
+            for ii, (a_, b_, [x1_, y1_, x2_, y2_], _) in enumerate(total_points_sorted):
+                a_ = np.tan(a_ / 180)
+                if (abs(int(a * x1_ + b) - y1_) < eps or abs(int(a * x2_ + b) - y2_) < eps) and i != ii:
+                    x_lines_idx[i] += [ii]
+                    # cv.circle(self.dst_img, (x1_, y1_), radius=10, color=(255, 255, 255), thickness=-1)
+                    # cv.circle(self.dst_img, (x2_, y2_), radius=10, color=(255, 255, 255), thickness=-1)
+
+        for i in range(len(total_points_sorted)):
+            total_points_sorted[i] += [len(x_lines_idx[i])]
+            cv.putText(self.dst_img, f"{i}",
+                       np.mean([total_points_sorted[i][2][:2], total_points_sorted[i][2][2:]], axis=(0)).astype(int),
+                       cv.FONT_HERSHEY_SIMPLEX, 1, 2)
 
         # print(total_points_sorted)
+        # print(x_lines_idx)
+        # exit()
+        total_points_sorted_crop = total_points_sorted[:int(len(total_points_sorted))]
 
         index_max_x_lines = 0
         self.index_max_x_lines = index_max_x_lines
@@ -189,53 +196,127 @@ class ImageHolder:
                 max_len = len_
                 max_lines = x_lines
                 index_max_x_lines = i
-        # print(index_max_x_lines)
 
         a, b, [x1, y1, x2, y2], len_, x_lines = total_points_sorted_crop[index_max_x_lines]
         cv.line(self.dst_img, (x1, y1), (x2, y2), (0, 255, 0), 5)
 
-        # print(total_points_sorted)
-
         # 2D proection
-        cross_lines = []
-        eps_ = 50
-        while len(cross_lines) < 2 and eps > 0:
-            cross_lines = []
-            for a, b, [x1, y1, x2, y2], len_, x_lines in total_points_sorted:
-                a_ = np.tan(total_points_sorted_crop[index_max_x_lines][0] / 180)
-                b_ = total_points_sorted_crop[index_max_x_lines][1]
-                x1_, y1_, x2_, y2_ = total_points_sorted_crop[index_max_x_lines][2]
-                if a * total_points_sorted_crop[index_max_x_lines][0] < 0 and \
-                        (abs(int(a_ * x1 + b_) - y1) < eps or
-                         abs(int(a_ * x2 + b_) - y2) < eps) and \
-                        x_lines == 1 and abs(y2 - y2_) > eps_ and abs(y2 - y1_) > eps_:
-                    cross_lines += [[a, b, [x1, y1, x2, y2], len_, x_lines]]
-            eps_ -= 1
-        # print(cross_lines)
 
-        eps = 10
-        import copy
-        cross_lines_ = copy.deepcopy(cross_lines)
-        # print(cross_lines)
-        if len(cross_lines) > 1:
-            cross_lines = cross_lines_
-            while len(cross_lines) != 2 and eps < 200:
-                for i in range(1, len(cross_lines)):
-                    a, b, [x1, y1, x2, y2], len_, x_lines = cross_lines[i]
-                    if abs(len_ - cross_lines[i-1][3]) < eps:
-                        cross_lines = cross_lines[i-1:i+1]
-                        break
-                eps += 10
-        # print(cross_lines)
-        if len(cross_lines) == 2:
-            a1, a2 = cross_lines[0][0], cross_lines[1][0]
-            if a1 < 0 and cross_lines[0][2][0] > cross_lines[1][2][0]:
-                cross_lines.reverse()
-            x1, y1, x2, y2 = cross_lines[0][2]
-            x3, y3, x4, y4 = cross_lines[1][2]
-            self.dst_img = add_text(image=self.dst_img, im_pts=[[x1, y1], [x2, y2], [x3, y3], [x4, y4]],
-                                    zone=1, draw_lines=False)
-        # print(cross_lines)
+        # print(x_lines_idx[index_max_x_lines])
+        # print([x_lines_idx[key] for key in x_lines_idx[index_max_x_lines]])
+
+        idx_lines = []
+        try:
+            tmp = [x_lines_idx[key] for key in x_lines_idx[index_max_x_lines]]
+            set_ = set()
+            for i, list_ in enumerate(tmp):
+                if list_:
+                    set_ = set_.union(set(list_))
+            set_.remove(1)
+            idx_lines = []
+            for i, list_ in enumerate(tmp):
+                if list_ and len(idx_lines) < 2:
+                    for val in list_:
+                        if val in set_:
+                            idx_lines += [x_lines_idx[index_max_x_lines][i]]
+                            break
+        except:
+            pass
+
+        print(idx_lines)
+        if len(idx_lines) == 2:
+
+            idx1, idx2 = idx_lines[0], idx_lines[1]
+            if np.mean([total_points_sorted[idx1][2][0], total_points_sorted[idx1][2][2]]) > np.mean([total_points_sorted[idx2][2][0], total_points_sorted[idx2][2][2]]):
+                idx_lines.reverse()
+            idx1, idx2 = idx_lines[0], idx_lines[1]
+
+            p0, p1, p2, p3 = total_points_sorted[idx1][2][:2], total_points_sorted[idx1][2][2:], \
+                             total_points_sorted[idx2][2][:2], total_points_sorted[idx2][2][2:]
+            print(total_points_sorted[idx1], total_points_sorted[idx2])
+
+            # cv.circle(self.dst_img, p0, radius=10, color=(255, 255, 255), thickness=-1)
+            self.dst_img = add_text(self.dst_img, [p0, p1, p2, p3])
+
+
+
+        # cv.circle(self.dst_img, total_points_sorted[2][2][2:], radius=10, color=(255, 255, 255), thickness=-1)
+
+
+        # exit()
+        # keys = list(x_lines_idx.keys())
+        # best_keys = None
+        # for index1 in keys:
+        #     for index2 in keys[index1:]:
+        #         if index1 == index2:
+        #             break
+        #         for n in x_lines_idx[index1]:
+        #             if n in x_lines_idx[index2]:
+        #                 best_keys = (index1, index2)
+        #                 break
+        #         if best_keys is not None: break
+        #     if best_keys is not None: break
+        #
+        # print(best_keys)
+
+
+
+
+        # a_best = total_points_sorted_crop[index_max_x_lines][0]
+        # for i, (a, b, [x1, y1, x2, y2], len_, x_lines) in enumerate(total_points_sorted):
+        #     if a * a_best > 0 and x_lines == 2 and i != index_max_x_lines:
+        #         print(a, b, [x1, y1, x2, y2], len_, x_lines)
+        #         # print(x_lines_idx[i])
+        #         line_idx_1, line_idx_2 = x_lines_idx[i][0], x_lines_idx[i][1]
+        #         print(total_points_sorted[line_idx_1])
+        #         print(total_points_sorted[line_idx_2])
+        #
+        #         point_left = (total_points_sorted[i][2][0], total_points_sorted[i][2][1])
+        #         point_right = (total_points_sorted[i][2][2], total_points_sorted[i][2][3])
+        #
+        #         print(point_left, point_right)
+        #
+        #         points = [(total_points_sorted[line_idx_1][2][0], total_points_sorted[line_idx_1][2][1]),
+        #                          (total_points_sorted[line_idx_1][2][2], total_points_sorted[line_idx_1][2][3]),
+        #                          (total_points_sorted[line_idx_2][2][0], total_points_sorted[line_idx_2][2][1]),
+        #                          (total_points_sorted[line_idx_2][2][0], total_points_sorted[line_idx_2][2][1])]
+        #
+        #         def calc(point_main, points):
+        #             min_i = 0
+        #             dist = np.inf
+        #             for i, point in enumerate(points):
+        #                 if distance.euclidean(point, point_main) < dist:
+        #                     dist = distance.euclidean(point, point_main)
+        #                     min_i = i
+        #             if min_i % 2 == 1:
+        #                 min_i -= 1
+        #             else:
+        #                 min_i += 1
+        #             return min_i
+        #
+        #         p0 = point_left
+        #         p1 = points[calc(point_left, points)]
+        #         p2 = point_right
+        #         p3 = points[calc(point_right, points)]
+
+                # print([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
+                # cv.circle(self.dst_img, p0, radius=10, color=(255, 255, 255), thickness=-1)
+                # cv.circle(self.dst_img, p1, radius=10, color=(255, 255, 255), thickness=-1)
+                # cv.circle(self.dst_img, p2, radius=10, color=(255, 255, 255), thickness=-1)
+                # cv.circle(self.dst_img, p3, radius=10, color=(255, 255, 255), thickness=-1)
+                # self.dst_img = add_text(self.dst_img, [p0, p1, p2, p3])
+                # cv.imshow("", self.dst_img)
+                # cv.waitKey()
+
+
+        # line_idx_1, line_idx_2 = x_lines_idx[best_idx][0], x_lines_idx[best_idx][1]
+        # x1, y1, x2, y2, x3, y3, x4, y4 = total_points_sorted[best_idx][2][0], total_points_sorted[best_idx][2][1],\
+        #                                  total_points_sorted[line_idx_1][2][2], total_points_sorted[line_idx_1][2][3],\
+        #                                  total_points_sorted[best_idx][2][2], total_points_sorted[best_idx][2][3], \
+        #                                  total_points_sorted[line_idx_2][2][2], total_points_sorted[line_idx_2][2][3],
+        # print([x1, y1])
+        # self.dst_img = cv.circle(self.dst_img, [x1, y1], radius=10, color=(255, 255, 255), thickness=-1)
+        # self.dst_img = add_text(self.dst_img, [[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
 
         self.save_image()
         return total_points_sorted, self.dst_img
